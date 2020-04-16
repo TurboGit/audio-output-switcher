@@ -8,6 +8,13 @@ const GObject = imports.gi.GObject;
 const Me = ExtensionUtils.getCurrentExtension();
 const Utils = Me.imports.utils;
 
+function getSinkName(sink)
+{
+    return sink.get_description()
+        .replace("interne Stéréo analogique on ", " on ")
+        .replace("Stéréo analogique", "");
+}
+
 const AudioOutputSubMenu = GObject.registerClass(
 	class AudioOutputSubMenu extends PopupMenu.PopupSubMenuMenuItem {
 	_init() {
@@ -37,7 +44,7 @@ const AudioOutputSubMenu = GObject.registerClass(
 		if (!defsink)
 			this.label.set_text("Other");
 		else
-			this.label.set_text(defsink.get_description());
+		        this.label.set_text(getSinkName(defsink));
 	}
 
 	_updateSinkList() {
@@ -51,7 +58,7 @@ const AudioOutputSubMenu = GObject.registerClass(
 			let sink = sinklist[i];
 			if (sink === defsink)
 				continue;
-			let item = new PopupMenu.PopupMenuItem(sink.get_description());
+		        let item = new PopupMenu.PopupMenuItem(getSinkName(sink));
 			item.connect('activate', () => {
 				control.set_default_sink(sink);
 			});
