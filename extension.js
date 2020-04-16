@@ -8,6 +8,42 @@ const GObject = imports.gi.GObject;
 const Me = ExtensionUtils.getCurrentExtension();
 const Utils = Me.imports.utils;
 
+/*
+  We ellipsize the sink name as it could be too long. The ellipsis is
+  done on the right by default and this hide pulse sink on the
+  network.
+
+  A pulse name of the network has the form (French):
+
+     Audio interne Stéréo analogique on <user>@<host>
+
+  And this get displayed be default as:
+
+     Audio interne Stéréo analogique...
+
+  If many sinks are available on the network one cannot distinguished them.
+
+*/
+
+function getSinkName(sink)
+{
+    let str = sink.get_description();
+    let len = str.length;
+    let max_len = 31;
+
+    if(len > max_len)
+    {
+        let chunk_size = (max_len - 3) / 3;
+        return str.substring(0, chunk_size)
+            + "..."
+            + str.substring(len - 1 - chunk_size * 2, len);
+    }
+    else
+    {
+        return str;
+    }
+}
+
 const AudioOutputSubMenu = GObject.registerClass(
 	class AudioOutputSubMenu extends PopupMenu.PopupSubMenuMenuItem {
 	_init() {
@@ -37,7 +73,7 @@ const AudioOutputSubMenu = GObject.registerClass(
 		if (!defsink)
 			this.label.set_text("Other");
 		else
-			this.label.set_text(defsink.get_description());
+		        this.label.set_text(getSinkName(defsink));
 	}
 
 	_updateSinkList() {
@@ -51,7 +87,7 @@ const AudioOutputSubMenu = GObject.registerClass(
 			let sink = sinklist[i];
 			if (sink === defsink)
 				continue;
-			let item = new PopupMenu.PopupMenuItem(sink.get_description());
+		        let item = new PopupMenu.PopupMenuItem(getSinkName(sink));
 			item.connect('activate', () => {
 				control.set_default_sink(sink);
 			});
